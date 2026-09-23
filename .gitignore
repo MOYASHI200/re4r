@@ -398,3 +398,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Local BioRand generation artifacts
+/biorand-re4r-*.zip
+/re4-input.pak
+/error*.txt
+/config.json
