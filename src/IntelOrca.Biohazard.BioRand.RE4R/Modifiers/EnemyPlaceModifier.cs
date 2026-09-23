@@ -56,7 +56,6 @@ namespace IntelOrca.Biohazard.BioRand.RE4R.Modifiers
             var allExtraEnemies = randomizer.EnemyService.EnemyPlacements
                 .Where(x => x.Campaign == randomizer.Campaign)
                 .Where(x => x.IsExtra)
-                .Where(x => !x.Description.StartsWith("[EXTRA] KNIFE ARENA"))
                 .ToArray();
 
             var mustPlace = allExtraEnemies
@@ -72,9 +71,13 @@ namespace IntelOrca.Biohazard.BioRand.RE4R.Modifiers
             mightPlace = mightPlace
                 .Shuffle(randomizer.GetRng("modifier/enemyplace"))
                 .Take(count)
+                .Where(x => !x.Description.StartsWith("[EXTRA] KNIFE ARENA"))
                 .ToArray();
 
-            return mustPlace.Concat(mightPlace).ToImmutableArray();
+            return mustPlace
+                .Where(x => !x.Description.StartsWith("[EXTRA] KNIFE ARENA"))
+                .Concat(mightPlace)
+                .ToImmutableArray();
         }
 
         private static Area? FindBestAreaForEnemy(ChainsawRandomizer randomizer, EnemyPlacement placement)
