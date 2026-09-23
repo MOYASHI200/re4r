@@ -60,8 +60,18 @@ namespace IntelOrca.Biohazard.BioRand.RE4R.Patches
 
         private static RszScene ReplaceDoor(RszScene scene, Guid targetDoorGuid, Guid templateDoorGuid, Guid newGuid, string newName)
         {
-            // Remove original door
-            var originalDoor = scene.FindGameObject(targetDoorGuid) ?? throw new Exception("Unable to find door to replace.");
+            // If this scene already came from a BioRand-patched input, the original
+            // door is gone and the replacement already exists. Treat that as
+            // "already applied" instead of failing.
+            var originalDoor = scene.FindGameObject(targetDoorGuid);
+            if (originalDoor == null)
+            {
+                if (scene.FindGameObject(newGuid) != null)
+                    return scene;
+
+                throw new Exception("Unable to find door to replace.");
+            }
+
             scene = scene.RemoveGameObject(targetDoorGuid);
 
             // Copy another door (copy transform & gimmickcore components over)
