@@ -32,7 +32,15 @@ namespace IntelOrca.Biohazard.BioRand.RE4R.Models
                 if (enemyComponent != null)
                 {
                     var enemy = new Enemy(Area, go, enemyComponent);
-                    var enemyPlacement = Area.Randomizer.EnemyService.Find(enemy.Guid) ?? throw new RandomizerUserException($"Failed to find enemy placement for {enemy.Guid}");
+                    var enemyPlacement = Area.Randomizer.EnemyService.Find(enemy.Guid);
+                    if (enemyPlacement == null)
+                    {
+                        // Preserve enemies that came from an already-patched/modded input
+                        // instead of aborting generation. They are left untouched by BioRand.
+                        Console.WriteLine($"Warning: preserving unknown enemy {enemy.Guid} in {Area.Path}");
+                        return;
+                    }
+
                     var spawn = new EnemySpawn(Area, this, enemy, enemy, enemyPlacement);
                     spawn.SetClassPool();
                     enemies.Add(spawn);
