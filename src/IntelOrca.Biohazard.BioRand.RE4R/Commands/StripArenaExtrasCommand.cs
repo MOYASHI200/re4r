@@ -1,39 +1,48 @@
 using System;
-using System.ComponentModel;
 using System.IO;
-using Spectre.Console.Cli;
 
 namespace IntelOrca.Biohazard.BioRand.RE4R
 {
-    internal sealed class StripArenaExtrasCommand : Command<StripArenaExtrasCommand.Settings>
+    internal static class StripArenaExtrasCommand
     {
-        public sealed class Settings : CommandSettings
+        public static int Run(string[] args)
         {
-            [Description("BioRand-generated patch PAK to clean up")]
-            [CommandOption("-i|--input")]
-            public string? InputPath { get; init; }
+            string? inputPath = null;
+            string? outputPath = null;
 
-            [Description("Output PAK containing only the Knife Arena cleanup")]
-            [CommandOption("-o|--output")]
-            public string? OutputPath { get; init; }
-        }
-
-        public override int Execute(CommandContext context, Settings settings)
-        {
-            if (string.IsNullOrWhiteSpace(settings.InputPath))
+            for (var i = 0; i < args.Length; i++)
             {
-                Console.Error.WriteLine("Input PAK not specified.");
+                var arg = args[i];
+                if ((arg == "-i" || arg == "--input") && i + 1 < args.Length)
+                {
+                    inputPath = args[++i];
+                }
+                else if ((arg == "-o" || arg == "--output") && i + 1 < args.Length)
+                {
+                    outputPath = args[++i];
+                }
+                else if (arg == "-h" || arg == "--help")
+                {
+                    PrintUsage();
+                    return 0;
+                }
+                else
+                {
+                    Console.Error.WriteLine($"Unknown or incomplete option: {arg}");
+                    PrintUsage();
+                    return 1;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(inputPath) || string.IsNullOrWhiteSpace(outputPath))
+            {
+                Console.Error.WriteLine("Both input and output PAK paths are required.");
+                PrintUsage();
                 return 1;
             }
 
-            if (string.IsNullOrWhiteSpace(settings.OutputPath))
-            {
-                Console.Error.WriteLine("Output PAK not specified.");
-                return 1;
-            }
-
-            var inputPath = Path.GetFullPath(settings.InputPath);
-            var outputPath = Path.GetFullPath(settings.OutputPath);
+            inputPath = Path.GetFullPath(inputPath);
+            outputPath = Path.GetFullPath(outputPath);
 
             if (!File.Exists(inputPath))
             {
@@ -59,13 +68,35 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
                 return 1;
             }
 
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+            var outputDirectory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
 
-            var modBuilder = ExportedMods.ExportMod(inputPath, "Knife Arena Cleanup", gameVersion: 6);
-            modBuilder.SavePakFile(outputPath);
+            try
+            {
+                var modBuilder = ExportedMods.ExportMod(
+                    inputPath,
+                    "Knife Arena Cleanup",
+                    gameVersion: 6);
 
-            Console.WriteLine($"Knife Arena cleanup PAK written to: {outputPath}");
-            return 0;
+                modBuilder.SavePakFile(outputPath);
+                Console.WriteLine($"Knife Arena cleanup PAK written to: {outputPath}");
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Failed to create Knife Arena cleanup PAK.");
+                Console.Error.WriteLine(ex.Message);
+                return 1;
+            }
+        }
+
+        private static void PrintUsage()
+        {
+            Console.WriteLine(
+                "Usage: biorand-re4r strip-arena-extras -i <generated.pak> -o <override.pak>");
         }
     }
 }
