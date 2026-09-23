@@ -61,7 +61,7 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
 
-            var modBuilder = ExportedMods.ExportMod(inputPath, "Knife Arena Cleanup");
+            var modBuilder = ExportedMods.ExportMod(inputPath, "Knife Arena Cleanup", gameVersion: 6);
             modBuilder.SavePakFile(outputPath);
 
             Console.WriteLine($"Knife Arena cleanup PAK written to: {outputPath}");
