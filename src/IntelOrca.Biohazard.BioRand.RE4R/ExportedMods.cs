@@ -87,6 +87,11 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
 
         public static ModBuilder ExportMod(string inputPath, string name)
         {
+            return ExportMod(inputPath, name, gameVersion: 5);
+        }
+
+        public static ModBuilder ExportMod(string inputPath, string name, int gameVersion)
+        {
             var exportedModAttribute = All.FirstOrDefault(x => x.Name == name)
                 ?? throw new ArgumentException($"{name} not found", nameof(name));
             var type = PatchTypes.FirstOrDefault(x => x.GetCustomAttribute<ExportModAttribute>()?.Name == exportedModAttribute.Name)
@@ -103,7 +108,7 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
                 Author = exportedModAttribute.Author
             };
 
-            var patchContext = new PatchContext(vanilla, modBuilder);
+            var patchContext = new PatchContext(vanilla, modBuilder, gameVersion);
             ApplyPatch(type, null, patchContext);
 
             return modBuilder;
@@ -117,13 +122,13 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
             }
         }
 
-        private class PatchContext(IPakFile vanilla, ModBuilder modBuilder) : IReeRandomizerContext
+        private class PatchContext(IPakFile vanilla, ModBuilder modBuilder, int gameVersion) : IReeRandomizerContext
         {
             private static readonly Re4rRandomizer s_randomizer = new();
 
             public IReeRandomizer Randomizer => s_randomizer;
             public PakList PakList => s_randomizer.PakList;
-            public RszTypeRepository TypeRepository => Re4rTypeRepository.FromVersion(5);
+            public RszTypeRepository TypeRepository => Re4rTypeRepository.FromVersion(gameVersion);
             public DynamicData DynamicData { get; } = new DynamicData(download: false);
 
             public byte[]? GetSupplementFile(string path) => EmbeddedData.GetFile(path);
