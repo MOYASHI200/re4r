@@ -56,6 +56,7 @@ namespace IntelOrca.Biohazard.BioRand.RE4R.Modifiers
             var allExtraEnemies = randomizer.EnemyService.EnemyPlacements
                 .Where(x => x.Campaign == randomizer.Campaign)
                 .Where(x => x.IsExtra)
+                .Where(x => !x.Description.StartsWith("[EXTRA] KNIFE ARENA"))
                 .ToArray();
 
             var mustPlace = allExtraEnemies
