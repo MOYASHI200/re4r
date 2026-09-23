@@ -92,7 +92,9 @@ namespace IntelOrca.Biohazard.BioRand.RE4R
             var type = PatchTypes.FirstOrDefault(x => x.GetCustomAttribute<ExportModAttribute>()?.Name == exportedModAttribute.Name)
                 ?? throw new Exception($"Type for {name} not found");
 
-            var vanilla = new RePakCollection(inputPath);
+            IPakFile vanilla = inputPath.EndsWith(".pak", StringComparison.OrdinalIgnoreCase)
+                ? new PatchedPakFile(inputPath)
+                : new RePakCollection(inputPath);
             var modBuilder = new ModBuilder
             {
                 Name = exportedModAttribute.Name,
